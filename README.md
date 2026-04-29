@@ -25,24 +25,24 @@ Here is the "Big Picture" showing exactly how the JavaScript Engine passes work 
 ```mermaid
 flowchart LR
     subgraph Engine["JavaScript Engine"]
-        Stack["Call Stack<br/>(Normal code: console.log)"]
+        Stack["CALL STACK (Runs Immediately)<br/>---<br/>1st: console.log('1. Start')<br/>2nd: console.log('2. Continue')<br/>3rd: mySyncFunction()"]
     end
 
-    subgraph Browser["Web APIs (Background workers)"]
-        AsyncTasks["Async Handlers<br/>(setTimeout, Promise)"]
+    subgraph Browser["Web APIs (Background)"]
+        AsyncTasks["HANDLING ASYNC<br/>---<br/>setTimeout() waiting...<br/>Promise.resolve() processing..."]
     end
 
     subgraph Memory["Event Queues (Waiting Area)"]
-        Micro["Microtask Queue VIP<br/>[Promise.then() callbacks]"]
-        Macro["Macrotask Queue Low<br/>[setTimeout() callbacks]"]
+        Micro["MICROTASK QUEUE (VIP Priority)<br/>---<br/>4th: Promise ('4. Resolving...')<br/>8th: Nested Promise ('8. Nested...')"]
+        Macro["MACROTASK QUEUE (Low Priority)<br/>---<br/>5th: setTimeout ('5. Resolving...')<br/>6th: setInterval ('6. Delayed...')<br/>7th: Bonus Macrotask ('7. Bonus...')"]
     end
 
-    Stack --"1. Hands off async work"--> AsyncTasks
-    AsyncTasks --"2. Adds Promise callback to"--> Micro
-    AsyncTasks --"2. When timer ends, adds to"--> Macro
+    Stack --"Offloads async work"--> AsyncTasks
+    AsyncTasks --"Sends Promises to VIP Line"--> Micro
+    AsyncTasks --"Sends Timers to Low Priority Line"--> Macro
 
-    Micro -."3. Event Loop moves VIPs FIRST".-> Stack
-    Macro -."4. Event Loop moves others SECOND".-> Stack
+    Micro -."Event Loop moves this to Stack FIRST".-> Stack
+    Macro -."Event Loop moves this to Stack SECOND".-> Stack
 ```
 
 ### Let's connect the Diagram to our Code (`app.js`):
