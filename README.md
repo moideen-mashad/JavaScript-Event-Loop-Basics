@@ -33,12 +33,12 @@ flowchart LR
     end
 
     subgraph Memory["Event Queues (Waiting Area)"]
-        Micro["MICROTASK QUEUE (VIP Priority)<br/>---<br/>4th: Promise ('4. Resolving...')<br/>8th: Nested Promise ('8. Nested...')"]
+        Micro["MICROTASK QUEUE (High Priority)<br/>---<br/>4th: Promise ('4. Resolving...')<br/>8th: Nested Promise ('8. Nested...')"]
         Macro["MACROTASK QUEUE (Low Priority)<br/>---<br/>5th: setTimeout ('5. Resolving...')<br/>6th: setInterval ('6. Delayed...')<br/>7th: Bonus Macrotask ('7. Bonus...')"]
     end
 
     Stack --"Offloads async work"--> AsyncTasks
-    AsyncTasks --"Sends Promises to VIP Line"--> Micro
+    AsyncTasks --"Sends Promises to High Priority Line"--> Micro
     AsyncTasks --"Sends Timers to Low Priority Line"--> Macro
 
     Micro -."Event Loop moves this to Stack FIRST".-> Stack
@@ -61,8 +61,8 @@ To make this super easy to understand, let's see how the diagram handles the cod
 
 4. **The Event Loop in Action:**
    Once the entire file has been read and all normal synchronous code finishes (meaning the Call Stack is now empty), the Event Loop steps in:
-   - **Step 1:** It checks the **Microtask Queue** first and says, *"VIPs go first!"* It moves the Promise code to the Call Stack to run.
-   - **Step 2:** Only when the Microtask Queue is *completely empty*, it checks the **Macrotask Queue** and moves the `setTimeout` code to the Call Stack to run.
+   - **Step 1:** It checks the **Microtask Queue** first and says, _"VIPs go first!"_ It moves the Promise code to the Call Stack to run.
+   - **Step 2:** Only when the Microtask Queue is _completely empty_, it checks the **Macrotask Queue** and moves the `setTimeout` code to the Call Stack to run.
 
 ---
 
