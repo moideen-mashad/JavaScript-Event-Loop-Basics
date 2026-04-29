@@ -12,7 +12,7 @@ Promise.resolve().then(() => {
 });
 
 // Written 4th | RUNS 2nd (Synchronous)
-console.log("2. Main Execution Continue");
+console.log("2. Main Execution Continue");Z
 
 // Written 5th | RUNS 6th (Delayed Macrotask)
 const intervalId = setInterval(() => {
