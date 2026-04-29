@@ -24,26 +24,45 @@ Here is the "Big Picture" showing exactly how the JavaScript Engine passes work 
 
 ```mermaid
 flowchart LR
-    subgraph Engine["JavaScript Engine (Sync)"]
-        Stack[Call Stack]
+    subgraph Engine["JavaScript Engine"]
+        Stack["Call Stack<br/>(Normal code: console.log)"]
     end
 
-    subgraph Browser["Web APIs (Background)"]
-        Timer[setTimeout]
+    subgraph Browser["Web APIs (Background workers)"]
+        AsyncTasks["Async Handlers<br/>(setTimeout, Promise)"]
     end
 
-    subgraph Memory["Event Queues"]
-        Micro[Microtask Queue<br/> High Priority]
-        Macro[Macrotask Queue<br/> Low Priority]
+    subgraph Memory["Event Queues (Waiting Area)"]
+        Micro["Microtask Queue VIP<br/>[Promise.then() callbacks]"]
+        Macro["Macrotask Queue Low<br/>[setTimeout() callbacks]"]
     end
 
-    Stack --"1. Sends async jobs to"--> Browser
-    Browser --"2. Once ready,<br/>adds Promise to"--> Micro
-    Browser --"2. Once timer finishes,<br/>adds timeout to"--> Macro
+    Stack --"1. Hands off async work"--> AsyncTasks
+    AsyncTasks --"2. Adds Promise callback to"--> Micro
+    AsyncTasks --"2. When timer ends, adds to"--> Macro
 
-    Micro -."3. Event Loop moves FIRST".-> Stack
-    Macro -."4. Event Loop moves SECOND".-> Stack
+    Micro -."3. Event Loop moves VIPs FIRST".-> Stack
+    Macro -."4. Event Loop moves others SECOND".-> Stack
 ```
+
+### Let's connect the Diagram to our Code (`app.js`):
+
+To make this super easy to understand, let's see how the diagram handles the code inside our `app.js` file:
+
+1. **JavaScript Engine (Call Stack):**
+   The engine reads synchronous code like `console.log("1. Main Execution Start")` and executes it instantly on the main Call Stack.
+
+2. **Web APIs (Background):**
+   When the engine sees `Promise.resolve()` and `setTimeout()`, it knows these are asynchronous tasks. It hands them off to the Browser's background workers (Web APIs) and keeps moving down the file.
+
+3. **Event Queues:**
+   - The Browser prepares the `Promise` and places its callback into the **Microtask Queue** (The VIP high-priority line).
+   - The Browser prepares the `setTimeout` and places its callback into the **Macrotask Queue** (The regular low-priority line).
+
+4. **The Event Loop in Action:**
+   Once the entire file has been read and all normal synchronous code finishes (meaning the Call Stack is now empty), the Event Loop steps in:
+   - **Step 1:** It checks the **Microtask Queue** first and says, *"VIPs go first!"* It moves the Promise code to the Call Stack to run.
+   - **Step 2:** Only when the Microtask Queue is *completely empty*, it checks the **Macrotask Queue** and moves the `setTimeout` code to the Call Stack to run.
 
 ---
 
